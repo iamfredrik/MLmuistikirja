@@ -3,8 +3,11 @@ package com.example.mlmuistikirja
 import android.Manifest
 import android.annotation.SuppressLint
 import android.content.pm.PackageManager
+import android.graphics.Bitmap
+import android.graphics.BitmapFactory
 import android.net.Uri
 import android.os.Bundle
+import android.renderscript.ScriptGroup
 import android.util.Log
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
@@ -49,23 +52,65 @@ class MainActivity : AppCompatActivity() {
         cameraExecutor = Executors.newSingleThreadExecutor()
     }
 
+    @SuppressLint("UnsafeExperimentalUsageError")
+    private fun analyze(imageProxy: ImageProxy) {
+        val bitmapImage = imageProxy.convertImageProxyToBitmap()
+        if (bitmapImage != null) {
+            val image = InputImage.fromBitmap(
+                bitmapImage,
+                imageProxy.imageInfo.rotationDegrees
+            )
+            // Pass image to an ML Kit Vision API
+            recognizeImageText(image, imageProxy)
+        }
+    }
+
+    fun ImageProxy.convertImageProxyToBitmap(): Bitmap {
+        val buffer = planes[0].buffer
+        buffer.rewind()
+        val bytes = ByteArray(buffer.capacity())
+        buffer.get(bytes)
+        return BitmapFactory.decodeByteArray(bytes, 0, bytes.size)
+    }
+
+    private fun recognizeImageText(image: InputImage, imageProxy: ImageProxy) {
+        TextRecognition.getClient()
+            .process(image)
+            .addOnSuccessListener { visionText ->
+                processImageText(visionText, imageProxy)
+                imageProxy.close()
+            }
+            .addOnFailureListener { error ->
+                Log.d(TAG, "tekstin tunnistus epäonnistui")
+                error.printStackTrace()
+                imageProxy.close()
+            }
+    }
+
+    private fun processImageText(visionText: Text, imageProxy: ImageProxy){
+        for (block in visionText.textBlocks) {
+            Log.d(TAG, block.text)
+        }
+    }
+
     private fun takePhoto() {
         // hae viite muokattavaan kuvakaappaukseen
         val imageCapture = imageCapture ?: return
-
 
         // Määritä listener kuvankaappaukselle, joka käynnistyy kun kuva on otettu
         imageCapture.takePicture(
             ContextCompat.getMainExecutor(this),
             object : ImageCapture.OnImageCapturedCallback() {
-                override fun onCaptureSuccess(image: ImageProxy) {
-                    super.onCaptureSuccess(image)
-
-                    image.close()
+                @SuppressLint("UnsafeExperimentalUsageError")
+                override fun onCaptureSuccess(imageProxy: ImageProxy) {
+                    super.onCaptureSuccess(imageProxy)
+                    Log.e(TAG, "Kuvankaappaus onnistui")
+                    analyze(imageProxy)
+                    imageProxy.close()
                 }
 
-                override fun onError(exc: ImageCaptureException) {
-                    Log.e(TAG, "Kuvan tallennus epäonnistui: ${exc.message}", exc)
+                override fun onError(exception: ImageCaptureException) {
+                    Log.e(TAG, "Kuvankaappaus epäonnistui: ${exception.message}", exception)
                 }
             })
     }
