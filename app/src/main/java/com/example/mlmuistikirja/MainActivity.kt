@@ -5,6 +5,8 @@ import android.annotation.SuppressLint
 import android.content.pm.PackageManager
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
+import android.media.MediaActionSound
+import android.media.MediaActionSound.SHUTTER_CLICK
 import android.net.Uri
 import android.os.Bundle
 import android.renderscript.ScriptGroup
@@ -55,14 +57,12 @@ class MainActivity : AppCompatActivity() {
     @SuppressLint("UnsafeExperimentalUsageError")
     private fun analyze(imageProxy: ImageProxy) {
         val bitmapImage = imageProxy.convertImageProxyToBitmap()
-        if (bitmapImage != null) {
-            val image = InputImage.fromBitmap(
-                bitmapImage,
-                imageProxy.imageInfo.rotationDegrees
-            )
-            // Pass image to an ML Kit Vision API
-            recognizeImageText(image, imageProxy)
-        }
+        val image = InputImage.fromBitmap(
+            bitmapImage,
+            imageProxy.imageInfo.rotationDegrees
+        )
+        // Pass image to an ML Kit Vision API
+        recognizeImageText(image, imageProxy)
     }
 
     fun ImageProxy.convertImageProxyToBitmap(): Bitmap {
@@ -77,7 +77,7 @@ class MainActivity : AppCompatActivity() {
         TextRecognition.getClient()
             .process(image)
             .addOnSuccessListener { visionText ->
-                processImageText(visionText, imageProxy)
+                processImageText(visionText)
                 imageProxy.close()
             }
             .addOnFailureListener { error ->
@@ -87,7 +87,7 @@ class MainActivity : AppCompatActivity() {
             }
     }
 
-    private fun processImageText(visionText: Text, imageProxy: ImageProxy){
+    private fun processImageText(visionText: Text){
         for (block in visionText.textBlocks) {
             Log.d(TAG, block.text)
         }
@@ -107,6 +107,8 @@ class MainActivity : AppCompatActivity() {
                     Log.e(TAG, "Kuvankaappaus onnistui")
                     analyze(imageProxy)
                     imageProxy.close()
+                    val shutter = MediaActionSound()
+                    shutter.play(SHUTTER_CLICK)
                 }
 
                 override fun onError(exception: ImageCaptureException) {
