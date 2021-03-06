@@ -1,3 +1,4 @@
 <resources>
     <string name="app_name">MLmuistikirja</string>
+    <string name="add_photo_text">Lisää kuvateksti</string>
 </resources>
