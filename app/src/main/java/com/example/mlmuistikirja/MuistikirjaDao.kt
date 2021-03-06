@@ -2,18 +2,33 @@ package com.example.mlmuistikirja
 
 import androidx.lifecycle.LiveData
 import androidx.room.*
+import kotlinx.coroutines.flow.Flow
 
 @Dao
-interface MuistikirjaDao {
+abstract class MuistikirjaDao {
     @Query("SELECT * FROM muistikirja_table ORDER by created_at ASC")
-    fun getMuistikirjat(): LiveData<List<Muistikirja>>
+    abstract fun getMuistikirjat(): Flow<List<Muistikirja>>
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
-    suspend fun insert(muistikirja: Muistikirja)
+    abstract fun insert(muistikirja: Muistikirja)
+
+    fun insertWithTimestamp(muistikirja: Muistikirja){
+        insert(muistikirja.apply {
+            created_at = System.currentTimeMillis()
+            updated_at = System.currentTimeMillis()
+        })
+    }
 
     @Update
-    suspend fun update(muistikirja: Muistikirja)
+    abstract fun update(muistikirja: Muistikirja)
+
+    fun updateWithTimestamp(muistikirja: Muistikirja){
+        insert(muistikirja.apply {
+            updated_at = System.currentTimeMillis()
+        })
+    }
 
     @Query("DELETE FROM muistikirja_table")
-    suspend fun deleteAll()
+    abstract fun deleteAll()
+
 }

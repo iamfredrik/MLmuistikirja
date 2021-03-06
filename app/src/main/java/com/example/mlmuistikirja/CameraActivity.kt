@@ -2,6 +2,8 @@ package com.example.mlmuistikirja
 
 import android.Manifest
 import android.annotation.SuppressLint
+import android.app.Activity
+import android.content.Intent
 import android.content.pm.PackageManager
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
@@ -43,7 +45,12 @@ class CameraActivity : AppCompatActivity() {
         }
 
         // Määritä listener kamera painikkeelle
-        camera_capture_button.setOnClickListener { takePhoto() }
+        camera_capture_button.setOnClickListener { // takePhoto()
+            val replyIntent = Intent()
+            replyIntent.putExtra(EXTRA_REPLY, "cool")
+            setResult(Activity.RESULT_OK, replyIntent)
+            finish()
+        }
 
         outputDirectory = getOutputDirectory()
 
@@ -191,5 +198,6 @@ class CameraActivity : AppCompatActivity() {
         private const val FILENAME_FORMAT = "yyyy-MM-dd-HH-mm-ss-SSS"
         private const val REQUEST_CODE_PERMISSIONS = 10
         private val REQUIRED_PERMISSIONS = arrayOf(Manifest.permission.CAMERA)
+        const val EXTRA_REPLY = "com.example.android.mlmuistikirja.EXTRA_REPLY"
     }
 }

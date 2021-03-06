@@ -8,7 +8,7 @@ import androidx.sqlite.db.SupportSQLiteDatabase
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 
-@Database(entities = arrayOf(Muistikirja::class), version = 1, exportSchema = false)
+@Database(entities = [Muistikirja::class], version = 1, exportSchema = false)
 public abstract class MuistikirjaDatabase : RoomDatabase() {
 
     abstract fun muistikirjaDao(): MuistikirjaDao
@@ -26,9 +26,9 @@ public abstract class MuistikirjaDatabase : RoomDatabase() {
                     muistikirjaDao.deleteAll()
 
                     var muistikirja = Muistikirja("Hello")
-                    muistikirjaDao.insert(muistikirja)
+                    muistikirjaDao.insertWithTimestamp(muistikirja)
                     muistikirja = Muistikirja("World")
-                    muistikirjaDao.insert(muistikirja)
+                    muistikirjaDao.insertWithTimestamp(muistikirja)
                 }
             }
         }
