@@ -10,9 +10,9 @@ abstract class MuistikirjaDao {
     abstract fun getMuistikirjat(): Flow<List<Muistikirja>>
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
-    abstract fun insert(muistikirja: Muistikirja)
+    abstract suspend fun insert(muistikirja: Muistikirja)
 
-    fun insertWithTimestamp(muistikirja: Muistikirja){
+    suspend fun insertWithTimestamp(muistikirja: Muistikirja){
         insert(muistikirja.apply {
             created_at = System.currentTimeMillis()
             updated_at = System.currentTimeMillis()
@@ -20,9 +20,9 @@ abstract class MuistikirjaDao {
     }
 
     @Update
-    abstract fun update(muistikirja: Muistikirja)
+    abstract suspend fun update(muistikirja: Muistikirja)
 
-    fun updateWithTimestamp(muistikirja: Muistikirja){
+    suspend fun updateWithTimestamp(muistikirja: Muistikirja){
         insert(muistikirja.apply {
             updated_at = System.currentTimeMillis()
         })

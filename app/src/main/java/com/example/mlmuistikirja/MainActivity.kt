@@ -42,9 +42,7 @@ class MainActivity : AppCompatActivity() {
 
         if (requestCode == cameraActivityRequestCode && resultCode == Activity.RESULT_OK) {
             intentData?.getStringExtra(CameraActivity.EXTRA_REPLY)?.let { reply ->
-                //val word = Word(reply)
-                // wordViewModel.insert(word)
-                val mkirja = Muistikirja("heissan")
+                val mkirja = Muistikirja(reply)
                 muistikirjaViewModel.insert(mkirja)
             }
         } else {

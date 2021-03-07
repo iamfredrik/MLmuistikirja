@@ -3,6 +3,7 @@ package com.example.mlmuistikirja
 import android.Manifest
 import android.annotation.SuppressLint
 import android.app.Activity
+import android.app.AlertDialog
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.graphics.Bitmap
@@ -45,11 +46,11 @@ class CameraActivity : AppCompatActivity() {
         }
 
         // Määritä listener kamera painikkeelle
-        camera_capture_button.setOnClickListener { // takePhoto()
-            val replyIntent = Intent()
-            replyIntent.putExtra(EXTRA_REPLY, "cool")
-            setResult(Activity.RESULT_OK, replyIntent)
-            finish()
+        camera_capture_button.setOnClickListener {
+            takePhoto()
+            it.isClickable = false
+            val shutter = MediaActionSound()
+            shutter.play(MediaActionSound.SHUTTER_CLICK)
         }
 
         outputDirectory = getOutputDirectory()
@@ -64,7 +65,7 @@ class CameraActivity : AppCompatActivity() {
             bitmapImage,
             imageProxy.imageInfo.rotationDegrees
         )
-        // Pass image to an ML Kit Vision API
+        // Käsittele kuva ML Kit Vision API:lla
         recognizeImageText(image, imageProxy)
     }
 
@@ -91,8 +92,34 @@ class CameraActivity : AppCompatActivity() {
     }
 
     private fun processImageText(visionText: Text){
+        var i = 0
+        var resultString = StringBuilder()
         for (block in visionText.textBlocks) {
-            Log.d(TAG, block.text)
+            // Log.d(TAG, block.text)
+            resultString.appendLine(block.text)
+
+            if (i++ == visionText.textBlocks.lastIndex) {
+                Log.d(TAG, resultString.toString())
+
+
+                val builder = AlertDialog.Builder(this@CameraActivity)
+                builder.setMessage(resultString.toString())
+                    .setCancelable(false)
+                    .setPositiveButton("Tallenna") { _, _ ->
+                        val replyIntent = Intent()
+                        replyIntent.putExtra(EXTRA_REPLY, resultString.toString())
+                        setResult(Activity.RESULT_OK, replyIntent)
+                        finish()
+                    }
+                    .setNegativeButton("Keskeytä") {dialog, _ ->
+                        camera_capture_button.isClickable = true
+                        dialog.dismiss()
+                    }
+                val alert = builder.create()
+                alert.show()
+
+
+            }
         }
     }
 
@@ -110,8 +137,6 @@ class CameraActivity : AppCompatActivity() {
                     Log.d(TAG, "Kuvankaappaus onnistui")
                     analyze(imageProxy)
                     imageProxy.close()
-                    val shutter = MediaActionSound()
-                    shutter.play(MediaActionSound.SHUTTER_CLICK)
                 }
 
                 override fun onError(exception: ImageCaptureException) {
@@ -194,7 +219,7 @@ class CameraActivity : AppCompatActivity() {
     }
 
     companion object {
-        private const val TAG = "CameraXBasic"
+        private const val TAG = "logitagi"
         private const val FILENAME_FORMAT = "yyyy-MM-dd-HH-mm-ss-SSS"
         private const val REQUEST_CODE_PERMISSIONS = 10
         private val REQUIRED_PERMISSIONS = arrayOf(Manifest.permission.CAMERA)

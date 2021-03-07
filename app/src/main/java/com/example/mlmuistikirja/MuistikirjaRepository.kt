@@ -9,11 +9,11 @@ class MuistikirjaRepository(private val muistikirjaDao: MuistikirjaDao) {
 
     @Suppress("RedundantSuspendModifier")
     @WorkerThread
-    fun insert(muistikirja: Muistikirja){
+    suspend fun insert(muistikirja: Muistikirja){
         muistikirjaDao.insertWithTimestamp(muistikirja)
     }
 
-    fun update(muistikirja: Muistikirja) {
+    suspend fun update(muistikirja: Muistikirja) {
         muistikirjaDao.updateWithTimestamp(muistikirja)
     }
 }
