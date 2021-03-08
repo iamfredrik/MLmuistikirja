@@ -29,7 +29,6 @@ import java.util.concurrent.Executors
 class CameraActivity : AppCompatActivity() {
     private var imageCapture: ImageCapture? = null
 
-    private lateinit var outputDirectory: File
     private lateinit var cameraExecutor: ExecutorService
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -52,8 +51,6 @@ class CameraActivity : AppCompatActivity() {
             val shutter = MediaActionSound()
             shutter.play(MediaActionSound.SHUTTER_CLICK)
         }
-
-        outputDirectory = getOutputDirectory()
 
         cameraExecutor = Executors.newSingleThreadExecutor()
     }
@@ -204,13 +201,6 @@ class CameraActivity : AppCompatActivity() {
                 finish()
             }
         }
-    }
-
-    private fun getOutputDirectory(): File {
-        val mediaDir = externalMediaDirs.firstOrNull()?.let {
-            File(it, resources.getString(R.string.app_name)).apply { mkdirs() } }
-        return if (mediaDir != null && mediaDir.exists())
-            mediaDir else filesDir
     }
 
     override fun onDestroy() {
