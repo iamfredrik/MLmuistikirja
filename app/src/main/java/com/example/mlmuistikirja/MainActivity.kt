@@ -6,10 +6,11 @@ import android.os.Bundle
 import android.widget.Toast
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
-import androidx.lifecycle.Observer
+import androidx.recyclerview.widget.DividerItemDecoration
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.floatingactionbutton.FloatingActionButton
+
 
 class MainActivity : AppCompatActivity() {
     private val cameraActivityRequestCode = 1
@@ -17,14 +18,23 @@ class MainActivity : AppCompatActivity() {
         MuistikirjaViewModelFactory((application as MuistikirjaApplication).repository)
     }
 
+    private val updateCallback = object: MuistikirjaListAdapter.UpdateCallbackInterface {
+        override fun updateCallback(muistikirja: Muistikirja) {
+            muistikirjaViewModel.update(muistikirja)
+        }
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
         val recyclerView = findViewById<RecyclerView>(R.id.recyclerview)
-        val adapter = MuistikirjaListAdapter()
+        val adapter = MuistikirjaListAdapter(updateCallback)
         recyclerView.adapter = adapter
         recyclerView.layoutManager = LinearLayoutManager(this)
+
+        // Lisää erotin kohteiden välille
+        recyclerView.addItemDecoration(DividerItemDecoration(this@MainActivity, LinearLayoutManager.VERTICAL))
 
         muistikirjaViewModel.muistikirjat.observe(this) { muistikirjat ->
             muistikirjat?.let { adapter.submitList(it) }

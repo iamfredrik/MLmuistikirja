@@ -6,7 +6,7 @@ import kotlinx.coroutines.flow.Flow
 
 @Dao
 abstract class MuistikirjaDao {
-    @Query("SELECT * FROM muistikirja_table ORDER by created_at ASC")
+    @Query("SELECT * FROM muistikirja_table ORDER by read_status ASC, created_at DESC")
     abstract fun getMuistikirjat(): Flow<List<Muistikirja>>
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
