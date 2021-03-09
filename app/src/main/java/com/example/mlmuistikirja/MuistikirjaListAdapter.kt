@@ -1,5 +1,6 @@
 package com.example.mlmuistikirja
 
+import android.graphics.Paint
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -22,7 +23,7 @@ class MuistikirjaListAdapter(private val updateCallbackInterface:UpdateCallbackI
 
     override fun onBindViewHolder(holder: MuistikirjaViewHolder, position: Int) {
         val current = getItem(position)
-        holder.bind(current.muistikirja)
+        holder.bind(current)
 
         val statusCheckBox = holder.itemView.findViewById<CheckBox>(R.id.readStatus)
 
@@ -39,8 +40,22 @@ class MuistikirjaListAdapter(private val updateCallbackInterface:UpdateCallbackI
     class MuistikirjaViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
         private val muistikirjaItemView: TextView = itemView.findViewById(R.id.textView)
 
-        fun bind(text: String?) {
-            muistikirjaItemView.text = text
+        fun bind(muistikirja: Muistikirja) {
+            // teksti jota näytetään recyclerview:ssä
+            muistikirjaItemView.text = muistikirja.muistikirja
+
+            // Lisää yliviiva jos teksti on merkattu luetuksi
+            if (muistikirja.read_status) {
+                muistikirjaItemView.apply {
+                    paintFlags = paintFlags or Paint.STRIKE_THRU_TEXT_FLAG
+                    text = muistikirja.muistikirja
+                }
+            } else {
+                muistikirjaItemView.apply {
+                    paintFlags = paintFlags and Paint.STRIKE_THRU_TEXT_FLAG.inv()
+                    text = muistikirja.muistikirja
+                }
+            }
         }
 
         companion object {
