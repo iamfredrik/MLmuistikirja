@@ -7,6 +7,7 @@ import android.widget.Toast
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import androidx.recyclerview.widget.DividerItemDecoration
+import androidx.recyclerview.widget.ItemTouchHelper
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.floatingactionbutton.FloatingActionButton
@@ -29,7 +30,7 @@ class MainActivity : AppCompatActivity() {
         setContentView(R.layout.activity_main)
 
         val recyclerView = findViewById<RecyclerView>(R.id.recyclerview)
-        val adapter = MuistikirjaListAdapter(updateCallback)
+        val adapter = MuistikirjaListAdapter(updateCallback, viewModel = muistikirjaViewModel)
         recyclerView.adapter = adapter
         recyclerView.layoutManager = LinearLayoutManager(this)
 
@@ -39,6 +40,10 @@ class MainActivity : AppCompatActivity() {
         muistikirjaViewModel.muistikirjat.observe(this) { muistikirjat ->
             muistikirjat?.let { adapter.submitList(it) }
         }
+
+
+        val itemTouchHelper = ItemTouchHelper(SwipeToDelete(adapter))
+        itemTouchHelper.attachToRecyclerView((recyclerView))
 
         val fab = findViewById<FloatingActionButton>(R.id.fab)
         fab.setOnClickListener {
@@ -53,12 +58,25 @@ class MainActivity : AppCompatActivity() {
         if (requestCode == cameraActivityRequestCode && resultCode == Activity.RESULT_OK) {
             intentData?.getStringExtra(CameraActivity.EXTRA_REPLY)?.let { reply ->
                 val mkirja = Muistikirja(reply)
-                muistikirjaViewModel.insert(mkirja)
+                try {
+                    muistikirjaViewModel.insert(mkirja)
+                    Toast.makeText(
+                        applicationContext,
+                        "Muistikirja tallennettu",
+                        Toast.LENGTH_LONG
+                    ).show()
+                } catch(e: Exception) {
+                    Toast.makeText(
+                        applicationContext,
+                        "Tallennus epäonnistui",
+                        Toast.LENGTH_LONG
+                    ).show()
+                }
             }
         } else {
             Toast.makeText(
                 applicationContext,
-                "Muistikirja ei tallennettu koska tyhjä",
+                "Muistikirja ei tallennettu",
                 Toast.LENGTH_LONG
             ).show()
         }

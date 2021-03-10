@@ -16,4 +16,8 @@ class MuistikirjaRepository(private val muistikirjaDao: MuistikirjaDao) {
     suspend fun update(muistikirja: Muistikirja) {
         muistikirjaDao.updateWithTimestamp(muistikirja)
     }
+
+    suspend fun delete(muistikirja: Muistikirja) {
+        muistikirjaDao.delete(muistikirja)
+    }
 }

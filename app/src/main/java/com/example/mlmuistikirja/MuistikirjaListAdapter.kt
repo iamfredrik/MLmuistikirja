@@ -1,20 +1,25 @@
 package com.example.mlmuistikirja
 
 import android.graphics.Paint
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.CheckBox
 import android.widget.TextView
-import androidx.recyclerview.widget.AdapterListUpdateCallback
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
 
-class MuistikirjaListAdapter(private val updateCallbackInterface:UpdateCallbackInterface) : ListAdapter<Muistikirja, MuistikirjaListAdapter.MuistikirjaViewHolder>(MuistikirjaComparator()) {
+class MuistikirjaListAdapter(private val updateCallbackInterface:UpdateCallbackInterface, private val viewModel: MuistikirjaViewModel) : ListAdapter<Muistikirja, MuistikirjaListAdapter.MuistikirjaViewHolder>(MuistikirjaComparator()) {
 
     interface UpdateCallbackInterface {
         fun updateCallback(muistikirja: Muistikirja)
+    }
+
+    fun deleteItem(position: Int) {
+        val current = getItem(position)
+        viewModel.delete(current)
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): MuistikirjaViewHolder {

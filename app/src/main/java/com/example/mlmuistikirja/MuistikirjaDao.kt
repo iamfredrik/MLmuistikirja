@@ -28,7 +28,9 @@ abstract class MuistikirjaDao {
         })
     }
 
-    @Query("DELETE FROM muistikirja_table")
-    abstract fun deleteAll()
+    @Delete
+    abstract suspend fun delete(muistikirja: Muistikirja)
 
+    @Query("DELETE FROM muistikirja_table")
+    abstract suspend fun deleteAll()
 }

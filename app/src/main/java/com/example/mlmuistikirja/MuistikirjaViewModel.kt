@@ -15,6 +15,10 @@ class MuistikirjaViewModel(private val repository: MuistikirjaRepository) : View
     fun update(muistikirja: Muistikirja) = viewModelScope.launch {
         repository.update(muistikirja)
     }
+
+    fun delete(muistikirja: Muistikirja) = viewModelScope.launch {
+        repository.delete(muistikirja)
+    }
 }
 
 class MuistikirjaViewModelFactory(private val repository: MuistikirjaRepository) : ViewModelProvider.Factory {
