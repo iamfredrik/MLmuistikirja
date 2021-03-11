@@ -17,23 +17,23 @@ import androidx.camera.core.*
 import androidx.camera.lifecycle.ProcessCameraProvider
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
+import com.example.mlmuistikirja.databinding.ActivityCameraBinding
 import com.google.mlkit.vision.common.InputImage
 import com.google.mlkit.vision.text.Text
 import com.google.mlkit.vision.text.TextRecognition
-import kotlinx.android.synthetic.main.activity_camera.*
-import java.io.File
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
 
 
 class CameraActivity : AppCompatActivity() {
     private var imageCapture: ImageCapture? = null
-
+    private lateinit var binding: ActivityCameraBinding
     private lateinit var cameraExecutor: ExecutorService
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_camera)
+        binding = ActivityCameraBinding.inflate(layoutInflater)
+        setContentView(binding.root)
 
         // Pyydä kameran käyttöoikeuksia
         if (allPermissionsGranted()) {
@@ -45,7 +45,7 @@ class CameraActivity : AppCompatActivity() {
         }
 
         // Määritä listener kamera painikkeelle
-        camera_capture_button.setOnClickListener {
+        binding.cameraCaptureButton.setOnClickListener {
             takePhoto()
             it.isClickable = false
             val shutter = MediaActionSound()
@@ -109,7 +109,7 @@ class CameraActivity : AppCompatActivity() {
                         finish()
                     }
                     .setNegativeButton("Keskeytä") {dialog, _ ->
-                        camera_capture_button.isClickable = true
+                        binding.cameraCaptureButton.isClickable = true
                         dialog.dismiss()
                     }
                 val alert = builder.create()
@@ -153,7 +153,7 @@ class CameraActivity : AppCompatActivity() {
             val preview = Preview.Builder()
                 .build()
                 .also {
-                    it.setSurfaceProvider(viewFinder.surfaceProvider)
+                    it.setSurfaceProvider(binding.previewView.surfaceProvider)
                 }
 
             imageCapture = ImageCapture.Builder()
@@ -210,7 +210,6 @@ class CameraActivity : AppCompatActivity() {
 
     companion object {
         private const val TAG = "logitagi"
-        private const val FILENAME_FORMAT = "yyyy-MM-dd-HH-mm-ss-SSS"
         private const val REQUEST_CODE_PERMISSIONS = 10
         private val REQUIRED_PERMISSIONS = arrayOf(Manifest.permission.CAMERA)
         const val EXTRA_REPLY = "com.example.android.mlmuistikirja.EXTRA_REPLY"

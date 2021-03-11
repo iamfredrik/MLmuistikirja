@@ -1,11 +1,8 @@
 package com.example.mlmuistikirja
 
-import android.app.Activity
 import android.app.AlertDialog
-import android.content.Intent
 import androidx.recyclerview.widget.ItemTouchHelper
 import androidx.recyclerview.widget.RecyclerView
-import kotlinx.android.synthetic.main.activity_camera.*
 
 // https://www.youtube.com/watch?v=LNL97As-wP4
 class SwipeToDelete(private val adapter: MuistikirjaListAdapter) : ItemTouchHelper.SimpleCallback(0,ItemTouchHelper.LEFT) {
