@@ -11,10 +11,17 @@ import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
 
-class MuistikirjaListAdapter(private val updateCallbackInterface:UpdateCallbackInterface, private val viewModel: MuistikirjaViewModel) : ListAdapter<Muistikirja, MuistikirjaListAdapter.MuistikirjaViewHolder>(MuistikirjaComparator()) {
+class MuistikirjaListAdapter(private val updateCallbackInterface:UpdateCallbackInterface,
+                             private val readCallbackInterface: ReadCallbackInterface,
+                             private val viewModel: MuistikirjaViewModel) : ListAdapter<Muistikirja,
+        MuistikirjaListAdapter.MuistikirjaViewHolder>(MuistikirjaComparator()) {
 
     interface UpdateCallbackInterface {
         fun updateCallback(muistikirja: Muistikirja)
+    }
+
+    interface  ReadCallbackInterface {
+        fun readCallback(muistikirja: Muistikirja)
     }
 
     fun deleteItem(position: Int) {
@@ -39,6 +46,12 @@ class MuistikirjaListAdapter(private val updateCallbackInterface:UpdateCallbackI
         statusCheckBox.setOnCheckedChangeListener{ _, isChecked ->
             current.read_status = isChecked
             updateCallbackInterface.updateCallback(current)
+        }
+
+        val itemText = holder.itemView.findViewById<TextView>(R.id.textView)
+
+        itemText.setOnClickListener {
+            readCallbackInterface.readCallback(current)
         }
     }
 

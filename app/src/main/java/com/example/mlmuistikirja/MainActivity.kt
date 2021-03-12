@@ -25,12 +25,20 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
+    private val readCallback = object: MuistikirjaListAdapter.ReadCallbackInterface {
+        override fun readCallback(muistikirja: Muistikirja) {
+            val intent = Intent(this@MainActivity, ReadActivity::class.java)
+            intent.putExtra("EXTRA_TEXT", muistikirja.muistikirja)
+            startActivity(intent)
+        }
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
         val recyclerView = findViewById<RecyclerView>(R.id.recyclerview)
-        val adapter = MuistikirjaListAdapter(updateCallback, viewModel = muistikirjaViewModel)
+        val adapter = MuistikirjaListAdapter(updateCallback, readCallback, viewModel = muistikirjaViewModel)
         recyclerView.adapter = adapter
         recyclerView.layoutManager = LinearLayoutManager(this)
 
