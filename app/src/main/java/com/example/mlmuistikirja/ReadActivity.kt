@@ -9,10 +9,10 @@ class ReadActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_read)
 
-        val textreader = findViewById<TextView>(R.id.readView)
+        val textReader = findViewById<TextView>(R.id.readView)
 
         if(intent.extras != null) {
-            textreader.text = intent.getStringExtra("EXTRA_TEXT")
+            textReader.text = intent.getStringExtra("EXTRA_TEXT")
         }
     }
 }
