@@ -12,6 +12,8 @@ import android.media.MediaActionSound
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.util.Log
+import android.view.View
+import android.widget.ProgressBar
 import android.widget.Toast
 import androidx.camera.core.*
 import androidx.camera.lifecycle.ProcessCameraProvider
@@ -50,6 +52,7 @@ class CameraActivity : AppCompatActivity() {
             it.isClickable = false
             val shutter = MediaActionSound()
             shutter.play(MediaActionSound.SHUTTER_CLICK)
+            binding.progressBar.visibility = View.VISIBLE
         }
 
         cameraExecutor = Executors.newSingleThreadExecutor()
@@ -114,7 +117,7 @@ class CameraActivity : AppCompatActivity() {
                     }
                 val alert = builder.create()
                 alert.show()
-
+                binding.progressBar.visibility = View.GONE
 
             }
         }
