@@ -81,12 +81,6 @@ class MainActivity : AppCompatActivity() {
                     ).show()
                 }
             }
-        } else {
-            Toast.makeText(
-                applicationContext,
-                "Muistikirja ei tallennettu",
-                Toast.LENGTH_LONG
-            ).show()
         }
     }
 }
