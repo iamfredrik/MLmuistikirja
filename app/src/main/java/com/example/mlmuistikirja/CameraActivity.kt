@@ -13,7 +13,6 @@ import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.util.Log
 import android.view.View
-import android.widget.ProgressBar
 import android.widget.Toast
 import androidx.camera.core.*
 import androidx.camera.lifecycle.ProcessCameraProvider
@@ -46,13 +45,13 @@ class CameraActivity : AppCompatActivity() {
             )
         }
 
-        // Määritä listener kamera painikkeelle
+        // Määritä kuuntelija kamera painikkeelle
         binding.cameraCaptureButton.setOnClickListener {
             takePhoto()
-            it.isClickable = false
+            it.isClickable = false // inaktivoidaan painiketta
             val shutter = MediaActionSound()
-            shutter.play(MediaActionSound.SHUTTER_CLICK)
-            binding.progressBar.visibility = View.VISIBLE
+            shutter.play(MediaActionSound.SHUTTER_CLICK) // Kamera ääni
+            binding.progressBar.visibility = View.VISIBLE // Näytä progressBar
         }
 
         cameraExecutor = Executors.newSingleThreadExecutor()
@@ -176,7 +175,7 @@ class CameraActivity : AppCompatActivity() {
                 )
 
             } catch (exc: Exception) {
-                Log.e(TAG, "Kameran sitominen epäonnistui", exc)
+                Log.e(TAG, "Kameran sidonta epäonnistui", exc)
             }
 
         }, ContextCompat.getMainExecutor(this))
