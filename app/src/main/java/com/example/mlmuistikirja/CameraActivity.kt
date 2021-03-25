@@ -217,7 +217,7 @@ class CameraActivity : AppCompatActivity() {
     }
 
     companion object {
-        private const val TAG = "logitagi"
+        private const val TAG = "softa"
         private const val REQUEST_CODE_PERMISSIONS = 10
         private val REQUIRED_PERMISSIONS = arrayOf(Manifest.permission.CAMERA)
         const val EXTRA_REPLY = "com.example.android.mlmuistikirja.EXTRA_REPLY"

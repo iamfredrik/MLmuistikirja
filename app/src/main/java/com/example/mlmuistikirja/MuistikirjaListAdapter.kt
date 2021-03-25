@@ -10,6 +10,8 @@ import android.widget.TextView
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
+import java.text.DateFormat
+import java.text.SimpleDateFormat
 
 class MuistikirjaListAdapter(private val updateCallbackInterface:UpdateCallbackInterface,
                              private val readCallbackInterface: ReadCallbackInterface,
@@ -20,7 +22,7 @@ class MuistikirjaListAdapter(private val updateCallbackInterface:UpdateCallbackI
         fun updateCallback(muistikirja: Muistikirja)
     }
 
-    interface  ReadCallbackInterface {
+    interface ReadCallbackInterface {
         fun readCallback(muistikirja: Muistikirja)
     }
 
@@ -60,18 +62,20 @@ class MuistikirjaListAdapter(private val updateCallbackInterface:UpdateCallbackI
 
         fun bind(muistikirja: Muistikirja) {
             // teksti jota näytetään recyclerview:ssä
-            muistikirjaItemView.text = muistikirja.muistikirja
+            val simpleDateFormat =  SimpleDateFormat("dd.MM.yyyy")
+            val date = simpleDateFormat.format(muistikirja.created_at).toString()
+            // muistikirjaItemView.text = date + " " + muistikirja.muistikirja
 
             // Lisää yliviiva jos teksti on merkattu luetuksi
             if (muistikirja.read_status) {
                 muistikirjaItemView.apply {
                     paintFlags = paintFlags or Paint.STRIKE_THRU_TEXT_FLAG
-                    text = muistikirja.muistikirja
+                    text = date + " " + muistikirja.muistikirja
                 }
             } else {
                 muistikirjaItemView.apply {
                     paintFlags = paintFlags and Paint.STRIKE_THRU_TEXT_FLAG.inv()
-                    text = muistikirja.muistikirja
+                    text = date + " " + muistikirja.muistikirja
                 }
             }
         }
@@ -82,6 +86,7 @@ class MuistikirjaListAdapter(private val updateCallbackInterface:UpdateCallbackI
                     .inflate(R.layout.recyclerview_item, parent, false)
                 return MuistikirjaViewHolder(view)
             }
+            private const val TAG = "softa"
         }
     }
 

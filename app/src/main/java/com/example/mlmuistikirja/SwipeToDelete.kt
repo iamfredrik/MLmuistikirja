@@ -15,7 +15,6 @@ class SwipeToDelete(private val adapter: MuistikirjaListAdapter) : ItemTouchHelp
     }
     override fun onSwiped(viewHolder: RecyclerView.ViewHolder, direction: Int) {
         val position = viewHolder.adapterPosition
-        //adapter.deleteItem(position)
 
         val builder = AlertDialog.Builder(viewHolder.itemView.context)
         builder.setMessage("Haluatko varmasti poistaa?")
