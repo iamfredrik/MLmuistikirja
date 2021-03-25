@@ -1,7 +1,6 @@
 package com.example.mlmuistikirja
 
 import android.graphics.Paint
-import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -10,7 +9,6 @@ import android.widget.TextView
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
-import java.text.DateFormat
 import java.text.SimpleDateFormat
 
 class MuistikirjaListAdapter(private val updateCallbackInterface:UpdateCallbackInterface,
@@ -61,10 +59,11 @@ class MuistikirjaListAdapter(private val updateCallbackInterface:UpdateCallbackI
         private val muistikirjaItemView: TextView = itemView.findViewById(R.id.textView)
 
         fun bind(muistikirja: Muistikirja) {
-            // teksti jota näytetään recyclerview:ssä
+            // täällä määritellään teksti jota näytetään recyclerview:ssä
+
+            // timestamp luettavaan muotoon
             val simpleDateFormat =  SimpleDateFormat("dd.MM.yyyy")
             val date = simpleDateFormat.format(muistikirja.created_at).toString()
-            // muistikirjaItemView.text = date + " " + muistikirja.muistikirja
 
             // Lisää yliviiva jos teksti on merkattu luetuksi
             if (muistikirja.read_status) {
