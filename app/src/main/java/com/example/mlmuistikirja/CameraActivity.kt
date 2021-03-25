@@ -45,8 +45,13 @@ class CameraActivity : AppCompatActivity() {
             )
         }
 
+        val cameraBtn  = binding.cameraCaptureButton
+
+        // asetetaan nappulalle tooltip
+        cameraBtn.tooltipText = "Osoita kuvattava teksti"
+
         // Määritä kuuntelija kamera painikkeelle
-        binding.cameraCaptureButton.setOnClickListener {
+        cameraBtn.setOnClickListener {
             takePhoto()
             it.isClickable = false // inaktivoidaan painiketta
             val shutter = MediaActionSound()
@@ -182,6 +187,7 @@ class CameraActivity : AppCompatActivity() {
     }
 
     private fun allPermissionsGranted() = REQUIRED_PERMISSIONS.all {
+        // Käyttöoikeus juttuja
         ContextCompat.checkSelfPermission(
             baseContext, it
         ) == PackageManager.PERMISSION_GRANTED
@@ -193,7 +199,7 @@ class CameraActivity : AppCompatActivity() {
     ) {
         if (requestCode == REQUEST_CODE_PERMISSIONS) {
             if (allPermissionsGranted()) {
-                startCamera()
+                startCamera() // Otetaan kamera käyttöön jos käyttöoikeus on myönnetty
             } else {
                 Toast.makeText(
                     this,
