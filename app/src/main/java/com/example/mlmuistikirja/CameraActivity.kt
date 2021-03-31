@@ -4,6 +4,7 @@ import android.Manifest
 import android.annotation.SuppressLint
 import android.app.Activity
 import android.app.AlertDialog
+import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.media.MediaActionSound
@@ -61,12 +62,25 @@ class CameraActivity : AppCompatActivity() {
 
     }
 
-    private val analyzeCallback = object : TextAnalyzer.AnalyzeCallbackInterface{
-        override fun analyzeCallback(string: String) {
+    private fun analyzeCallback(text: String) {
+        Log.d(TAG, text)
 
-            Log.d(TAG, string)
-
-        }
+        val builder = AlertDialog.Builder(this)
+        builder.setMessage(text)
+                .setCancelable(false)
+                .setPositiveButton("Tallenna") { _, _ ->
+                    val replyIntent = Intent()
+                    replyIntent.putExtra(EXTRA_REPLY, text)
+                    setResult(Activity.RESULT_OK, replyIntent)
+                    finish()
+                }
+                .setNegativeButton("Keskeytä") {dialog, _ ->
+                    binding.cameraCaptureButton.isClickable = true
+                    dialog.dismiss()
+                }
+        val alert = builder.create()
+        alert.show()
+        binding.progressBar.visibility = View.GONE
 
     }
 
@@ -76,7 +90,7 @@ class CameraActivity : AppCompatActivity() {
                 .also {
                     it.setAnalyzer(
                             cameraExecutor,
-                            TextAnalyzer(analyzeCallback)
+                            TextAnalyzer(::analyzeCallback)
                     )
                 }
     }
@@ -161,11 +175,7 @@ class CameraActivity : AppCompatActivity() {
     }
 
 
-    private class TextAnalyzer(private val analyzeCallbackInterface: AnalyzeCallbackInterface) : ImageAnalysis.Analyzer {
-
-        interface AnalyzeCallbackInterface {
-            fun analyzeCallback(string: String)
-        }
+    private class TextAnalyzer(private val analyzerCallback: (String) -> Unit) : ImageAnalysis.Analyzer {
 
         @SuppressLint("UnsafeExperimentalUsageError")
        override fun analyze(imageProxy: ImageProxy) {
@@ -195,17 +205,17 @@ class CameraActivity : AppCompatActivity() {
         }
 
         private fun processImageText(visionText: Text){
-            var i = 0
             var resultString = StringBuilder()
-            for (block in visionText.textBlocks) {
+            for ((i, block) in visionText.textBlocks.withIndex()) {
                 // Log.d(TAG, block.text)
                 resultString.appendLine(block.text)
 
-                if (i++ == visionText.textBlocks.lastIndex) {
+                if (i == visionText.textBlocks.lastIndex) {
                     //Log.d(TAG, resultString.toString())
-
-                    analyzeCallbackInterface.analyzeCallback(resultString.toString())
-
+                    if (capture) {
+                        analyzerCallback(resultString.toString())
+                        capture = false
+                    }
                 }
             }
         }
