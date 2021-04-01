@@ -63,25 +63,25 @@ class CameraActivity : AppCompatActivity() {
     }
 
     private fun analyzeCallback(text: String) {
-        Log.d(TAG, text)
-
+        // Callback TextAnalyzer luokasta
+        // Näytetään alert dialogi jossa kuvattu teksti
         val builder = AlertDialog.Builder(this)
         builder.setMessage(text)
                 .setCancelable(false)
                 .setPositiveButton("Tallenna") { _, _ ->
+                    // lähetetään reply intent main activitylle
                     val replyIntent = Intent()
                     replyIntent.putExtra(EXTRA_REPLY, text)
                     setResult(Activity.RESULT_OK, replyIntent)
                     finish()
                 }
                 .setNegativeButton("Keskeytä") {dialog, _ ->
-                    binding.cameraCaptureButton.isClickable = true
+                    binding.cameraCaptureButton.isClickable = true // aktivoidaan kamera painike
                     dialog.dismiss()
                 }
         val alert = builder.create()
         alert.show()
         binding.progressBar.visibility = View.GONE
-
     }
 
     private val imageAnalyzer by lazy {
