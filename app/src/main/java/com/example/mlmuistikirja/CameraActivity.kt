@@ -4,14 +4,19 @@ import android.Manifest
 import android.annotation.SuppressLint
 import android.app.Activity
 import android.app.AlertDialog
+import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
+import android.graphics.*
 import android.media.MediaActionSound
-import androidx.appcompat.app.AppCompatActivity
+import android.os.Build
 import android.os.Bundle
 import android.util.Log
+import android.util.Size
 import android.view.View
 import android.widget.Toast
+import androidx.annotation.RequiresApi
+import androidx.appcompat.app.AppCompatActivity
 import androidx.camera.core.*
 import androidx.camera.lifecycle.ProcessCameraProvider
 import androidx.core.app.ActivityCompat
@@ -24,6 +29,7 @@ import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
 
 
+@RequiresApi(Build.VERSION_CODES.R)
 class CameraActivity : AppCompatActivity() {
     private var imageCapture: ImageCapture? = null
     private lateinit var binding: ActivityCameraBinding
@@ -39,10 +45,11 @@ class CameraActivity : AppCompatActivity() {
             startCamera()
         } else {
             ActivityCompat.requestPermissions(
-                this, CameraActivity.REQUIRED_PERMISSIONS, CameraActivity.REQUEST_CODE_PERMISSIONS
+                    this, CameraActivity.REQUIRED_PERMISSIONS, CameraActivity.REQUEST_CODE_PERMISSIONS
             )
         }
 
+        var layout = binding.layout
         val cameraBtn  = binding.cameraCaptureButton
 
         // asetetaan nappulalle tooltip
@@ -58,7 +65,6 @@ class CameraActivity : AppCompatActivity() {
         }
 
         cameraExecutor = Executors.newSingleThreadExecutor()
-
     }
 
     private fun analyzeCallback(text: String) {
@@ -74,7 +80,7 @@ class CameraActivity : AppCompatActivity() {
                     setResult(Activity.RESULT_OK, replyIntent)
                     finish()
                 }
-                .setNegativeButton("Keskeytä") {dialog, _ ->
+                .setNegativeButton("Keskeytä") { dialog, _ ->
                     binding.cameraCaptureButton.isClickable = true // aktivoidaan kamera painike
                     dialog.dismiss()
                 }
@@ -84,12 +90,15 @@ class CameraActivity : AppCompatActivity() {
     }
 
     private val imageAnalyzer by lazy {
+        val point = Point()
+        val size = display?.getRealSize(point)
         ImageAnalysis.Builder()
+                .setTargetResolution(Size(point.x, point.y))
                 .build()
                 .also {
                     it.setAnalyzer(
                             cameraExecutor,
-                            TextAnalyzer(::analyzeCallback)
+                            TextAnalyzer(this, binding, ::analyzeCallback)
                     )
                 }
     }
@@ -107,13 +116,13 @@ class CameraActivity : AppCompatActivity() {
 
             // Esukatselu
             val preview = Preview.Builder()
-                .build()
-                .also {
-                    it.setSurfaceProvider(binding.previewView.surfaceProvider)
-                }
+                    .build()
+                    .also {
+                        it.setSurfaceProvider(binding.previewView.surfaceProvider)
+                    }
 
             imageCapture = ImageCapture.Builder()
-                .build()
+                    .build()
 
 
             // Valitse takakamera oletuksena
@@ -125,7 +134,7 @@ class CameraActivity : AppCompatActivity() {
 
                 // Sido kameran käyttö
                 cameraProvider.bindToLifecycle(
-                    this, cameraSelector, preview, imageAnalyzer, imageCapture
+                        this, cameraSelector, preview, imageAnalyzer, imageCapture
                 )
 
             } catch (exc: Exception) {
@@ -138,22 +147,22 @@ class CameraActivity : AppCompatActivity() {
     private fun allPermissionsGranted() = REQUIRED_PERMISSIONS.all {
         // Käyttöoikeus juttuja
         ContextCompat.checkSelfPermission(
-            baseContext, it
+                baseContext, it
         ) == PackageManager.PERMISSION_GRANTED
     }
 
     override fun onRequestPermissionsResult(
-        requestCode: Int, permissions: Array<String>, grantResults:
-        IntArray
+            requestCode: Int, permissions: Array<String>, grantResults:
+            IntArray
     ) {
         if (requestCode == REQUEST_CODE_PERMISSIONS) {
             if (allPermissionsGranted()) {
                 startCamera() // Otetaan kamera käyttöön jos käyttöoikeus on myönnetty
             } else {
                 Toast.makeText(
-                    this,
-                    "Käyttäjä ei myöntänyt käyttöoikeuksia.",
-                    Toast.LENGTH_SHORT
+                        this,
+                        "Käyttäjä ei myöntänyt käyttöoikeuksia.",
+                        Toast.LENGTH_SHORT
                 ).show()
                 finish()
             }
@@ -174,7 +183,8 @@ class CameraActivity : AppCompatActivity() {
     }
 
 
-    private class TextAnalyzer(private val analyzerCallback: (String) -> Unit) : ImageAnalysis.Analyzer {
+    private class TextAnalyzer(private val context: Context?, private var binding: ActivityCameraBinding, private val analyzerCallback: (String) -> Unit) : ImageAnalysis.Analyzer {
+        private val layout = binding.layout
 
         @SuppressLint("UnsafeExperimentalUsageError")
        override fun analyze(imageProxy: ImageProxy) {
@@ -204,11 +214,10 @@ class CameraActivity : AppCompatActivity() {
         }
 
         private fun processImageText(visionText: Text){
-            var resultString = StringBuilder()
+            val resultString = StringBuilder()
             for ((i, block) in visionText.textBlocks.withIndex()) {
                 // Log.d(TAG, block.text)
                 resultString.appendLine(block.text)
-
                 if (i == visionText.textBlocks.lastIndex) {
                     //Log.d(TAG, resultString.toString())
                     if (capture) {
@@ -216,8 +225,43 @@ class CameraActivity : AppCompatActivity() {
                         capture = false
                     }
                 }
+                for (line in block.lines) {
+                    for (element in line.elements) {
+                        if(layout.childCount > 1) {
+                            layout.removeViewAt(1)
+                        }
+                        val elem = Draw(context, element.boundingBox, element.text)
+                        layout.addView(elem, 1)
+                    }
+                }
             }
         }
+    }
 
+    private class Draw(context: Context?, var rect: Rect?, var text: String) : View(context) {
+        lateinit var paint: Paint
+        lateinit var textPaint: Paint
+
+        init {
+            init()
+        }
+
+        private fun init() {
+            paint = Paint()
+            paint.color = Color.MAGENTA
+            paint.strokeWidth = 10f
+            paint.style = Paint.Style.STROKE
+
+            textPaint = Paint()
+            textPaint.color = Color.WHITE
+            textPaint.style = Paint.Style.FILL
+            textPaint.textSize = 80f
+        }
+
+        override fun onDraw(canvas: Canvas){
+            super.onDraw(canvas)
+            //canvas.drawText(text, rect!!.centerX().toFloat(),rect!!.centerY().toFloat(), textPaint)
+            canvas.drawRect(rect!!.left.toFloat(), rect!!.top.toFloat(), rect!!.right.toFloat(), rect!!.bottom.toFloat(), paint)
+        }
     }
 }
