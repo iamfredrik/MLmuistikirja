@@ -6,7 +6,7 @@ import android.graphics.Paint
 import android.graphics.RectF
 import android.util.Log
 import com.google.mlkit.vision.text.Text
-
+// Luokka konvertoitu Javasta Kotliniin. Alkuperäinen luokka löytyy https://codelabs.developers.google.com/codelabs/mlkit-android
 class TextGraphic internal constructor(overlay: GraphicOverlay, private val element: Text.Element?) : GraphicOverlay.Graphic(overlay) {
     private val rectPaint: Paint = Paint()
     private val textPaint: Paint
@@ -26,8 +26,8 @@ class TextGraphic internal constructor(overlay: GraphicOverlay, private val elem
 
     companion object {
         private const val TAG = "softa"
-        private const val TEXT_COLOR = Color.RED
-        private const val RECT_COLOR = Color.TRANSPARENT
+        private const val TEXT_COLOR = Color.TRANSPARENT
+        private const val RECT_COLOR = Color.RED
         private const val TEXT_SIZE = 54.0f
         private const val STROKE_WIDTH = 4.0f
     }

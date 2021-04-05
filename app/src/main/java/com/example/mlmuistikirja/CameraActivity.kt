@@ -12,6 +12,7 @@ import android.media.MediaActionSound
 import android.os.Build
 import android.os.Bundle
 import android.util.Log
+import android.util.Rational
 import android.util.Size
 import android.view.View
 import android.widget.Toast
@@ -95,7 +96,9 @@ class CameraActivity : AppCompatActivity() {
         val size = display?.getRealSize(point)
         Log.d(TAG, "$point")
         ImageAnalysis.Builder()
-                .setTargetResolution(Size(point.x, point.y))
+                //.setTargetResolution(Size(point.x, point.y))
+                .setTargetResolution(Size(1080, 1920))
+                //.setTargetAspectRatio(AspectRatio.RATIO_4_3)
                 .build()
                 .also {
                     it.setAnalyzer(
@@ -118,7 +121,8 @@ class CameraActivity : AppCompatActivity() {
 
             // Esukatselu
             val preview = Preview.Builder()
-                    .setTargetResolution(Size(736, 1600))
+                    .setTargetResolution(Size(1080, 1920))
+                    // .setTargetAspectRatio(AspectRatio.RATIO_4_3)
                     .build()
                     .also {
                         it.setSurfaceProvider(binding.previewView.surfaceProvider)

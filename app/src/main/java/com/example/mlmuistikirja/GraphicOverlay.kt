@@ -6,7 +6,7 @@ import android.hardware.camera2.CameraCharacteristics
 import android.util.AttributeSet
 import android.view.View
 import java.util.*
-
+// Luokka konvertoitu Javasta Kotliniin. Alkuperäinen luokka löytyy https://codelabs.developers.google.com/codelabs/mlkit-android
 open class GraphicOverlay(context: Context?, attrs: AttributeSet?) : View(context, attrs) {
     private val lock = Any()
     private var previewWidth = 0
