@@ -7,7 +7,7 @@ import android.app.AlertDialog
 import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
-import android.graphics.*
+import android.graphics.Point
 import android.media.MediaActionSound
 import android.os.Build
 import android.os.Bundle
@@ -49,7 +49,8 @@ class CameraActivity : AppCompatActivity() {
             )
         }
 
-        var layout = binding.layout
+        var mGraphicOverlay = binding.graphicOverlay
+
         val cameraBtn  = binding.cameraCaptureButton
 
         // asetetaan nappulalle tooltip
@@ -92,6 +93,7 @@ class CameraActivity : AppCompatActivity() {
     private val imageAnalyzer by lazy {
         val point = Point()
         val size = display?.getRealSize(point)
+        Log.d(TAG, "$point")
         ImageAnalysis.Builder()
                 .setTargetResolution(Size(point.x, point.y))
                 .build()
@@ -116,6 +118,7 @@ class CameraActivity : AppCompatActivity() {
 
             // Esukatselu
             val preview = Preview.Builder()
+                    .setTargetResolution(Size(736, 1600))
                     .build()
                     .also {
                         it.setSurfaceProvider(binding.previewView.surfaceProvider)
@@ -182,9 +185,8 @@ class CameraActivity : AppCompatActivity() {
         private var capture : Boolean = false
     }
 
-
     private class TextAnalyzer(private val context: Context?, private var binding: ActivityCameraBinding, private val analyzerCallback: (String) -> Unit) : ImageAnalysis.Analyzer {
-        private val layout = binding.layout
+        private val mGraphicOverlay = binding.graphicOverlay
 
         @SuppressLint("UnsafeExperimentalUsageError")
        override fun analyze(imageProxy: ImageProxy) {
@@ -194,6 +196,7 @@ class CameraActivity : AppCompatActivity() {
                         mediaImage,
                         imageProxy.imageInfo.rotationDegrees
                 )
+                Log.d(TAG, "${image.width}, ${image.height}")
                 // Käsittele kuva ML Kit Vision API:lla
                 recognizeImageText(image, imageProxy)
             }
@@ -215,6 +218,7 @@ class CameraActivity : AppCompatActivity() {
 
         private fun processImageText(visionText: Text){
             val resultString = StringBuilder()
+            mGraphicOverlay.clear()
             for ((i, block) in visionText.textBlocks.withIndex()) {
                 // Log.d(TAG, block.text)
                 resultString.appendLine(block.text)
@@ -227,41 +231,11 @@ class CameraActivity : AppCompatActivity() {
                 }
                 for (line in block.lines) {
                     for (element in line.elements) {
-                        if(layout.childCount > 1) {
-                            layout.removeViewAt(1)
-                        }
-                        val elem = Draw(context, element.boundingBox, element.text)
-                        layout.addView(elem, 1)
+                        val textGraphic: GraphicOverlay.Graphic = TextGraphic(mGraphicOverlay, element)
+                        mGraphicOverlay.add(textGraphic)
                     }
                 }
             }
-        }
-    }
-
-    private class Draw(context: Context?, var rect: Rect?, var text: String) : View(context) {
-        lateinit var paint: Paint
-        lateinit var textPaint: Paint
-
-        init {
-            init()
-        }
-
-        private fun init() {
-            paint = Paint()
-            paint.color = Color.MAGENTA
-            paint.strokeWidth = 10f
-            paint.style = Paint.Style.STROKE
-
-            textPaint = Paint()
-            textPaint.color = Color.WHITE
-            textPaint.style = Paint.Style.FILL
-            textPaint.textSize = 80f
-        }
-
-        override fun onDraw(canvas: Canvas){
-            super.onDraw(canvas)
-            //canvas.drawText(text, rect!!.centerX().toFloat(),rect!!.centerY().toFloat(), textPaint)
-            canvas.drawRect(rect!!.left.toFloat(), rect!!.top.toFloat(), rect!!.right.toFloat(), rect!!.bottom.toFloat(), paint)
         }
     }
 }

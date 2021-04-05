@@ -15,22 +15,25 @@
         android:scaleType="fitCenter"
         android:src="@drawable/ic_baseline_photo_camera_24_white"
         app:backgroundTint="@color/design_default_color_primary"
-        app:tint="@android:color/white"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintLeft_toLeftOf="parent"
-        app:layout_constraintRight_toRightOf="parent" />
+        app:layout_constraintRight_toRightOf="parent"
+        app:tint="@android:color/white" />
 
-    <RelativeLayout
-        android:id="@+id/layout"
+    <androidx.camera.view.PreviewView
+        android:id="@+id/previewView"
         android:layout_width="match_parent"
-        android:layout_height="match_parent">
+        android:layout_height="match_parent" />
 
-        <androidx.camera.view.PreviewView
-            android:id="@+id/previewView"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent" />
-
-    </RelativeLayout>
+    <com.example.mlmuistikirja.GraphicOverlay
+        android:id="@+id/graphic_overlay"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_alignParentStart="true"
+        app:layout_constraintBottom_toBottomOf="@id/previewView"
+        app:layout_constraintLeft_toLeftOf="@id/previewView"
+        app:layout_constraintRight_toRightOf="@id/previewView"
+        app:layout_constraintTop_toTopOf="@id/previewView" />
 
     <ProgressBar
         android:id="@+id/progressBar"
