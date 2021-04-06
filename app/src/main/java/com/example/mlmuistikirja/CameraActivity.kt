@@ -12,7 +12,6 @@ import android.media.MediaActionSound
 import android.os.Build
 import android.os.Bundle
 import android.util.Log
-import android.util.Rational
 import android.util.Size
 import android.view.View
 import android.widget.Toast

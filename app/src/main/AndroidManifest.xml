@@ -14,7 +14,8 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/Theme.MLmuistikirja">
-        <activity android:name=".ReadActivity"></activity>
+        <activity android:name=".ReadActivity"
+            android:screenOrientation="portrait"/>
         <activity
             android:name=".CameraActivity"
             android:screenOrientation="portrait" />
