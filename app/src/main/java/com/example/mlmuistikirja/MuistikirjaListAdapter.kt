@@ -1,5 +1,6 @@
 package com.example.mlmuistikirja
 
+import android.annotation.SuppressLint
 import android.graphics.Paint
 import android.view.LayoutInflater
 import android.view.View
@@ -58,6 +59,7 @@ class MuistikirjaListAdapter(private val updateCallbackInterface:UpdateCallbackI
     class MuistikirjaViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
         private val muistikirjaItemView: TextView = itemView.findViewById(R.id.textView)
 
+        @SuppressLint("SetTextI18n", "SimpleDateFormat")
         fun bind(muistikirja: Muistikirja) {
             // täällä määritellään teksti jota näytetään recyclerview:ssä
 

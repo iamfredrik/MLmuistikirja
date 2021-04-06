@@ -4,16 +4,19 @@ import android.Manifest
 import android.annotation.SuppressLint
 import android.app.Activity
 import android.app.AlertDialog
+import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
-import android.graphics.Bitmap
-import android.graphics.BitmapFactory
+import android.graphics.Point
 import android.media.MediaActionSound
-import androidx.appcompat.app.AppCompatActivity
+import android.os.Build
 import android.os.Bundle
 import android.util.Log
+import android.util.Size
 import android.view.View
 import android.widget.Toast
+import androidx.annotation.RequiresApi
+import androidx.appcompat.app.AppCompatActivity
 import androidx.camera.core.*
 import androidx.camera.lifecycle.ProcessCameraProvider
 import androidx.core.app.ActivityCompat
@@ -26,10 +29,13 @@ import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
 
 
+@RequiresApi(Build.VERSION_CODES.R)
 class CameraActivity : AppCompatActivity() {
     private var imageCapture: ImageCapture? = null
     private lateinit var binding: ActivityCameraBinding
     private lateinit var cameraExecutor: ExecutorService
+    private var maxScreenWidth: Int = 1080
+    private var maxScreenHeight: Int = 1920
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -41,9 +47,11 @@ class CameraActivity : AppCompatActivity() {
             startCamera()
         } else {
             ActivityCompat.requestPermissions(
-                this, CameraActivity.REQUIRED_PERMISSIONS, CameraActivity.REQUEST_CODE_PERMISSIONS
+                    this, CameraActivity.REQUIRED_PERMISSIONS, CameraActivity.REQUEST_CODE_PERMISSIONS
             )
         }
+
+        var mGraphicOverlay = binding.graphicOverlay
 
         val cameraBtn  = binding.cameraCaptureButton
 
@@ -60,93 +68,56 @@ class CameraActivity : AppCompatActivity() {
         }
 
         cameraExecutor = Executors.newSingleThreadExecutor()
-    }
 
-    @SuppressLint("UnsafeExperimentalUsageError")
-    private fun analyze(imageProxy: ImageProxy) {
-        val bitmapImage = imageProxy.convertImageProxyToBitmap()
-        val image = InputImage.fromBitmap(
-            bitmapImage,
-            imageProxy.imageInfo.rotationDegrees
-        )
-        // Käsittele kuva ML Kit Vision API:lla
-        recognizeImageText(image, imageProxy)
-    }
-
-    fun ImageProxy.convertImageProxyToBitmap(): Bitmap {
-        val buffer = planes[0].buffer
-        buffer.rewind()
-        val bytes = ByteArray(buffer.capacity())
-        buffer.get(bytes)
-        return BitmapFactory.decodeByteArray(bytes, 0, bytes.size)
-    }
-
-    private fun recognizeImageText(image: InputImage, imageProxy: ImageProxy) {
-        TextRecognition.getClient()
-            .process(image)
-            .addOnSuccessListener { visionText ->
-                processImageText(visionText)
-                imageProxy.close()
-            }
-            .addOnFailureListener { error ->
-                Log.d(TAG, "tekstin tunnistus epäonnistui")
-                error.printStackTrace()
-                imageProxy.close()
-            }
-    }
-
-    private fun processImageText(visionText: Text){
-        var i = 0
-        var resultString = StringBuilder()
-        for (block in visionText.textBlocks) {
-            // Log.d(TAG, block.text)
-            resultString.appendLine(block.text)
-
-            if (i++ == visionText.textBlocks.lastIndex) {
-                Log.d(TAG, resultString.toString())
-
-
-                val builder = AlertDialog.Builder(this@CameraActivity)
-                builder.setMessage(resultString.toString())
-                    .setCancelable(false)
-                    .setPositiveButton("Tallenna") { _, _ ->
-                        val replyIntent = Intent()
-                        replyIntent.putExtra(EXTRA_REPLY, resultString.toString())
-                        setResult(Activity.RESULT_OK, replyIntent)
-                        finish()
-                    }
-                    .setNegativeButton("Keskeytä") {dialog, _ ->
-                        binding.cameraCaptureButton.isClickable = true
-                        dialog.dismiss()
-                    }
-                val alert = builder.create()
-                alert.show()
-                binding.progressBar.visibility = View.GONE
-
-            }
+        // Asetetaan näytön koko, ImageAnalysis tukee enintään 1080p
+        val point = Point()
+        val size = display?.getRealSize(point)
+        //Log.d(TAG, "$point")
+        if (point.x < maxScreenWidth && point.y < maxScreenHeight) {
+            maxScreenWidth = point.x
+            maxScreenHeight = point.y
         }
+
+        binding.previewConstraint.layoutParams.width = maxScreenWidth
+        binding.previewConstraint.layoutParams.height = maxScreenHeight
+    }
+
+    private fun analyzeCallback(text: String) {
+        // Callback TextAnalyzer luokasta
+        // Näytetään alert dialogi jossa kuvattu teksti
+        val builder = AlertDialog.Builder(this)
+        builder.setMessage(text)
+                .setCancelable(false)
+                .setPositiveButton("Tallenna") { _, _ ->
+                    // lähetetään reply intent main activitylle
+                    val replyIntent = Intent()
+                    replyIntent.putExtra(EXTRA_REPLY, text)
+                    setResult(Activity.RESULT_OK, replyIntent)
+                    finish()
+                }
+                .setNegativeButton("Keskeytä") { dialog, _ ->
+                    binding.cameraCaptureButton.isClickable = true // aktivoidaan kamera painike
+                    dialog.dismiss()
+                }
+        val alert = builder.create()
+        alert.show()
+        binding.progressBar.visibility = View.GONE
+    }
+
+    private val imageAnalyzer by lazy {
+        ImageAnalysis.Builder()
+                .setTargetResolution(Size(maxScreenWidth, maxScreenHeight))
+                .build()
+                .also {
+                    it.setAnalyzer(
+                            cameraExecutor,
+                            TextAnalyzer(this, binding, ::analyzeCallback)
+                    )
+                }
     }
 
     private fun takePhoto() {
-        // hae viite muokattavaan kuvakaappaukseen
-        val imageCapture = imageCapture ?: return
-
-        // Määritä listener kuvankaappaukselle, joka käynnistyy kun kuva on otettu
-        imageCapture.takePicture(
-            ContextCompat.getMainExecutor(this),
-            object : ImageCapture.OnImageCapturedCallback() {
-                @SuppressLint("UnsafeExperimentalUsageError")
-                override fun onCaptureSuccess(imageProxy: ImageProxy) {
-                    super.onCaptureSuccess(imageProxy)
-                    Log.d(TAG, "Kuvankaappaus onnistui")
-                    analyze(imageProxy)
-                    imageProxy.close()
-                }
-
-                override fun onError(exception: ImageCaptureException) {
-                    Log.e(TAG, "Kuvankaappaus epäonnistui: ${exception.message}", exception)
-                }
-            })
+        capture = true
     }
 
     private fun startCamera() {
@@ -158,13 +129,14 @@ class CameraActivity : AppCompatActivity() {
 
             // Esukatselu
             val preview = Preview.Builder()
-                .build()
-                .also {
-                    it.setSurfaceProvider(binding.previewView.surfaceProvider)
-                }
+                    .setTargetResolution(Size(maxScreenWidth, maxScreenHeight))
+                    .build()
+                    .also {
+                        it.setSurfaceProvider(binding.previewView.surfaceProvider)
+                    }
 
             imageCapture = ImageCapture.Builder()
-                .build()
+                    .build()
 
 
             // Valitse takakamera oletuksena
@@ -176,7 +148,7 @@ class CameraActivity : AppCompatActivity() {
 
                 // Sido kameran käyttö
                 cameraProvider.bindToLifecycle(
-                    this, cameraSelector, preview, imageCapture
+                        this, cameraSelector, preview, imageAnalyzer, imageCapture
                 )
 
             } catch (exc: Exception) {
@@ -189,22 +161,22 @@ class CameraActivity : AppCompatActivity() {
     private fun allPermissionsGranted() = REQUIRED_PERMISSIONS.all {
         // Käyttöoikeus juttuja
         ContextCompat.checkSelfPermission(
-            baseContext, it
+                baseContext, it
         ) == PackageManager.PERMISSION_GRANTED
     }
 
     override fun onRequestPermissionsResult(
-        requestCode: Int, permissions: Array<String>, grantResults:
-        IntArray
+            requestCode: Int, permissions: Array<String>, grantResults:
+            IntArray
     ) {
         if (requestCode == REQUEST_CODE_PERMISSIONS) {
             if (allPermissionsGranted()) {
                 startCamera() // Otetaan kamera käyttöön jos käyttöoikeus on myönnetty
             } else {
                 Toast.makeText(
-                    this,
-                    "Käyttäjä ei myöntänyt käyttöoikeuksia.",
-                    Toast.LENGTH_SHORT
+                        this,
+                        "Käyttäjä ei myöntänyt käyttöoikeuksia.",
+                        Toast.LENGTH_SHORT
                 ).show()
                 finish()
             }
@@ -221,5 +193,60 @@ class CameraActivity : AppCompatActivity() {
         private const val REQUEST_CODE_PERMISSIONS = 10
         private val REQUIRED_PERMISSIONS = arrayOf(Manifest.permission.CAMERA)
         const val EXTRA_REPLY = "com.example.android.mlmuistikirja.EXTRA_REPLY"
+        private var capture : Boolean = false
+    }
+
+    private class TextAnalyzer(private val context: Context?, private var binding: ActivityCameraBinding, private val analyzerCallback: (String) -> Unit) : ImageAnalysis.Analyzer {
+        private val mGraphicOverlay = binding.graphicOverlay
+
+        @SuppressLint("UnsafeExperimentalUsageError")
+       override fun analyze(imageProxy: ImageProxy) {
+            val mediaImage = imageProxy.image
+            if (mediaImage != null) {
+                val image = InputImage.fromMediaImage(
+                        mediaImage,
+                        imageProxy.imageInfo.rotationDegrees
+                )
+                // Log.d(TAG, "${image.width}, ${image.height}")
+                // Käsittele kuva ML Kit Vision API:lla
+                recognizeImageText(image, imageProxy)
+            }
+        }
+
+        private fun recognizeImageText(image: InputImage, imageProxy: ImageProxy) {
+            TextRecognition.getClient()
+                    .process(image)
+                    .addOnSuccessListener { visionText ->
+                        processImageText(visionText)
+                        imageProxy.close()
+                    }
+                    .addOnFailureListener { error ->
+                        Log.d(TAG, "tekstin tunnistus epäonnistui")
+                        error.printStackTrace()
+                        imageProxy.close()
+                    }
+        }
+
+        private fun processImageText(visionText: Text){
+            val resultString = StringBuilder()
+            mGraphicOverlay.clear()
+            for ((i, block) in visionText.textBlocks.withIndex()) {
+                // Log.d(TAG, block.text)
+                resultString.appendLine(block.text)
+                if (i == visionText.textBlocks.lastIndex) {
+                    //Log.d(TAG, resultString.toString())
+                    if (capture) {
+                        analyzerCallback(resultString.toString())
+                        capture = false
+                    }
+                }
+                for (line in block.lines) {
+                    for (element in line.elements) {
+                        val textGraphic: GraphicOverlay.Graphic = TextGraphic(mGraphicOverlay, element)
+                        mGraphicOverlay.add(textGraphic)
+                    }
+                }
+            }
+        }
     }
 }
