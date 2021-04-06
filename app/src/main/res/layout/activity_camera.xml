@@ -22,8 +22,9 @@
         app:tint="@android:color/white" />
 
     <androidx.constraintlayout.widget.ConstraintLayout
-        android:layout_width="1080px"
-        android:layout_height="1920px"
+        android:id="@+id/previewConstraint"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
         app:layout_constraintLeft_toLeftOf="parent"
         app:layout_constraintRight_toRightOf="parent"
         app:layout_constraintTop_toTopOf="parent">

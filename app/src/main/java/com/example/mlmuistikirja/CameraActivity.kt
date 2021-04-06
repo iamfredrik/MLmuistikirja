@@ -34,6 +34,8 @@ class CameraActivity : AppCompatActivity() {
     private var imageCapture: ImageCapture? = null
     private lateinit var binding: ActivityCameraBinding
     private lateinit var cameraExecutor: ExecutorService
+    private var maxScreenWidth: Int = 1080
+    private var maxScreenHeight: Int = 1920
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -66,6 +68,18 @@ class CameraActivity : AppCompatActivity() {
         }
 
         cameraExecutor = Executors.newSingleThreadExecutor()
+
+        // Asetetaan näytön koko, ImageAnalysis tukee enintään 1080p
+        val point = Point()
+        val size = display?.getRealSize(point)
+        //Log.d(TAG, "$point")
+        if (point.x < maxScreenWidth && point.y < maxScreenHeight) {
+            maxScreenWidth = point.x
+            maxScreenHeight = point.y
+        }
+
+        binding.previewConstraint.layoutParams.width = maxScreenWidth
+        binding.previewConstraint.layoutParams.height = maxScreenHeight
     }
 
     private fun analyzeCallback(text: String) {
@@ -91,13 +105,8 @@ class CameraActivity : AppCompatActivity() {
     }
 
     private val imageAnalyzer by lazy {
-        val point = Point()
-        val size = display?.getRealSize(point)
-        Log.d(TAG, "$point")
         ImageAnalysis.Builder()
-                //.setTargetResolution(Size(point.x, point.y))
-                .setTargetResolution(Size(1080, 1920))
-                //.setTargetAspectRatio(AspectRatio.RATIO_4_3)
+                .setTargetResolution(Size(maxScreenWidth, maxScreenHeight))
                 .build()
                 .also {
                     it.setAnalyzer(
@@ -120,8 +129,7 @@ class CameraActivity : AppCompatActivity() {
 
             // Esukatselu
             val preview = Preview.Builder()
-                    .setTargetResolution(Size(1080, 1920))
-                    // .setTargetAspectRatio(AspectRatio.RATIO_4_3)
+                    .setTargetResolution(Size(maxScreenWidth, maxScreenHeight))
                     .build()
                     .also {
                         it.setSurfaceProvider(binding.previewView.surfaceProvider)
@@ -199,7 +207,7 @@ class CameraActivity : AppCompatActivity() {
                         mediaImage,
                         imageProxy.imageInfo.rotationDegrees
                 )
-                Log.d(TAG, "${image.width}, ${image.height}")
+                // Log.d(TAG, "${image.width}, ${image.height}")
                 // Käsittele kuva ML Kit Vision API:lla
                 recognizeImageText(image, imageProxy)
             }
