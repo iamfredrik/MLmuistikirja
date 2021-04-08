@@ -111,7 +111,7 @@ class CameraActivity : AppCompatActivity() {
                 .also {
                     it.setAnalyzer(
                             cameraExecutor,
-                            TextAnalyzer(this, binding, ::analyzeCallback)
+                            TextAnalyzer(binding, ::analyzeCallback)
                     )
                 }
     }
@@ -196,7 +196,7 @@ class CameraActivity : AppCompatActivity() {
         private var capture : Boolean = false
     }
 
-    private class TextAnalyzer(private val context: Context?, private var binding: ActivityCameraBinding, private val analyzerCallback: (String) -> Unit) : ImageAnalysis.Analyzer {
+    private class TextAnalyzer(binding: ActivityCameraBinding, private val analyzerCallback: (String) -> Unit) : ImageAnalysis.Analyzer {
         private val mGraphicOverlay = binding.graphicOverlay
 
         @SuppressLint("UnsafeExperimentalUsageError")
